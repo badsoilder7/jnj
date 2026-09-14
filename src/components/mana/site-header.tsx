@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { MapPin, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useDemo } from "./demo-provider";
+import { useDirectory } from "./directory-provider";
 import { copy } from "./i18n";
 export function SiteHeader() {
-  const { language, setLanguage } = useDemo();
+  const { language, setLanguage } = useDirectory();
   const t = copy[language];
   return (
     <header className="border-b border-border bg-background">

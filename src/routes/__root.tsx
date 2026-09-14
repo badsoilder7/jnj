@@ -1,4 +1,4 @@
-import { DemoProvider } from "@/components/mana/demo-provider";
+import { DirectoryProvider } from "@/components/mana/directory-provider";
 import { SiteHeader } from "@/components/mana/site-header";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -128,11 +128,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <DemoProvider>
+      <DirectoryProvider>
         <SiteHeader />
         <Outlet />
         <Toaster richColors position="top-center" />
-      </DemoProvider>
+      </DirectoryProvider>
     </QueryClientProvider>
   );
 }

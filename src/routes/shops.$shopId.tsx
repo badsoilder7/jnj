@@ -1,9 +1,10 @@
 import { ShopPhoto } from "@/components/mana/shop-photo";
+import { DirectoryNotice } from "@/components/mana/directory-notice";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { ArrowLeft, Clock3, MapPin, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useDemo } from "@/components/mana/demo-provider";
+import { useDirectory } from "@/components/mana/directory-provider";
 import { copy } from "@/components/mana/i18n";
 import { ContactButton, StatusBadge } from "@/components/mana/shop-card";
 const schema = z.object({ from: z.string().catch("/").default("/") });
@@ -11,16 +12,16 @@ export const Route = createFileRoute("/shops/$shopId")({
   validateSearch: (input) => schema.parse(input),
   head: () => ({
     meta: [
-      { title: "Shop preview — Mana Proddatur" },
+      { title: "Shop details — Mana Proddatur" },
       {
         name: "description",
         content:
-          "View sample shop information, opening hours, and contact actions on Mana Proddatur.",
+          "View local shop information, opening hours, and contact details on Mana Proddatur.",
       },
-      { property: "og:title", content: "Shop preview — Mana Proddatur" },
+      { property: "og:title", content: "Shop details — Mana Proddatur" },
       {
         property: "og:description",
-        content: "Sample local shop details for the Mana Proddatur UI preview.",
+        content: "Shop addresses, contact details and opening status in Proddatur 516360.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -31,9 +32,15 @@ export const Route = createFileRoute("/shops/$shopId")({
 function ShopDetail() {
   const { shopId } = Route.useParams();
   const { from } = Route.useSearch();
-  const { language, shops, store } = useDemo();
+  const { language, shops, store, isLive, loading, error } = useDirectory();
   const t = copy[language];
   const shop = shops.find((s) => s.id === shopId);
+  if (loading || error)
+    return (
+      <main className="mx-auto min-h-[60vh] max-w-3xl px-4 py-8">
+        <DirectoryNotice />
+      </main>
+    );
   if (!shop)
     return (
       <main className="mx-auto grid min-h-[70vh] max-w-3xl place-items-center px-4 text-center">
@@ -62,21 +69,32 @@ function ShopDetail() {
           <ArrowLeft />
           {t.back}
         </a>
-        <div className="mt-3 grid gap-3 lg:grid-cols-[2fr_1fr]">
-          <div className="aspect-3/2 overflow-hidden rounded-2xl bg-muted">
-            <ShopPhoto src={shop.images[0]} alt={`${shop.name} — ${t.photoNote}`} />
+        <div
+          className={`mt-3 grid gap-3 ${!isLive || shop.images.length > 1 ? "lg:grid-cols-[2fr_1fr]" : ""}`}
+        >
+          <div className="aspect-3/2 max-h-[540px] overflow-hidden rounded-2xl bg-muted">
+            <ShopPhoto
+              src={shop.images[0]}
+              alt={isLive ? shop.name : `${shop.name} — ${t.photoNote}`}
+            />
           </div>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
-            <div className="aspect-3/2 overflow-hidden rounded-2xl bg-muted">
-              <ShopPhoto
-                src={shop.images[1] ?? shop.images[0]}
-                alt={`${shop.name} — ${t.photoNote}`}
-              />
+          {(!isLive || shop.images.length > 1) && (
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
+              <div className="aspect-3/2 overflow-hidden rounded-2xl bg-muted">
+                <ShopPhoto
+                  src={shop.images[1] ?? shop.images[0]}
+                  alt={isLive ? shop.name : `${shop.name} — ${t.photoNote}`}
+                />
+              </div>
+              <div className="flex aspect-3/2 items-center justify-center rounded-2xl border border-notice-border bg-notice p-6 text-center text-sm font-semibold text-notice-foreground">
+                {isLive
+                  ? language === "te"
+                    ? "దుకాణ యజమాని జోడించిన ఫోటో"
+                    : "Photo provided by the shop owner"
+                  : t.photoNote}
+              </div>
             </div>
-            <div className="flex aspect-3/2 items-center justify-center rounded-2xl border border-notice-border bg-notice p-6 text-center text-sm font-semibold text-notice-foreground">
-              {t.photoNote}
-            </div>
-          </div>
+          )}
         </div>
         <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,.6fr)]">
           <article>
@@ -126,8 +144,19 @@ function ShopDetail() {
                 <Clock3 className="text-primary" />
                 {t.hours}
               </h2>
-              <p className="mt-3 font-semibold">{shop.hours}</p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{t.hoursNote}</p>
+              <p className="mt-3 font-semibold">
+                {shop.hours ||
+                  (language === "te"
+                    ? "సమయాల కోసం దుకాణాన్ని సంప్రదించండి"
+                    : "Contact the shop for regular hours")}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {isLive
+                  ? language === "te"
+                    ? "సాధారణ సమయాలు నేటి తెరిచి ఉన్న స్థితిని నిర్ధారించవు."
+                    : "Regular hours do not confirm whether the shop is open today."
+                  : t.hoursNote}
+              </p>
             </section>
           </aside>
         </div>

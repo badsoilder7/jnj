@@ -4,10 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, MapPin, Phone, Route, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { effectiveStatus, type Shop, type StatusRecord } from "@/lib/mana-data";
-import { useDemo } from "./demo-provider";
+import { useDirectory } from "./directory-provider";
 import { copy } from "./i18n";
 export function StatusBadge({ record }: { record?: StatusRecord | undefined }) {
-  const { language, now } = useDemo();
+  const { language, now } = useDirectory();
   const t = copy[language];
   const r = effectiveStatus(record, now);
   const label =
@@ -49,7 +49,7 @@ export function ContactButton({
   kind: "call" | "whatsapp" | "directions";
   href?: string | undefined;
 }) {
-  const { language } = useDemo();
+  const { language } = useDirectory();
   const t = copy[language];
   const Icon = kind === "call" ? Phone : kind === "whatsapp" ? MessageCircle : Route;
   const label = kind === "call" ? t.call : kind === "whatsapp" ? t.whatsapp : t.directions;
@@ -82,15 +82,20 @@ export function ShopCard({
   record?: StatusRecord | undefined;
   from: string;
 }) {
-  const { language } = useDemo();
+  const { language, isLive } = useDirectory();
   const t = copy[language];
   return (
     <article className="group overflow-hidden rounded-2xl border border-border bg-card transition duration-150 hover:-translate-y-1 hover:shadow-card">
       <div className="relative aspect-3/2 overflow-hidden bg-muted">
-        <ShopPhoto src={shop.images[0]} alt={`${shop.name} — ${t.photoNote}`} />
-        <span className="absolute left-3 top-3 rounded-md bg-background/95 px-2 py-1 text-xs font-extrabold uppercase text-primary shadow-sm">
-          {t.demo}
-        </span>
+        <ShopPhoto
+          src={shop.images[0]}
+          alt={isLive ? shop.name : `${shop.name} — ${t.photoNote}`}
+        />
+        {!isLive && (
+          <span className="absolute left-3 top-3 rounded-md bg-background/95 px-2 py-1 text-xs font-extrabold uppercase text-primary shadow-sm">
+            {t.demo}
+          </span>
+        )}
       </div>
       <div className="p-5">
         <div className="flex flex-col items-start justify-between gap-3">

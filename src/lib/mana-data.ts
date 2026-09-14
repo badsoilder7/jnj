@@ -24,6 +24,17 @@ export const categories = [
   "Services",
 ] as const;
 export type Category = (typeof categories)[number];
+export const categoryLabelsTe: Record<Category, string> = {
+  "All shops": "అన్ని దుకాణాలు",
+  Footwear: "పాదరక్షలు",
+  Clothing: "దుస్తులు",
+  Mobiles: "మొబైల్స్",
+  Groceries: "కిరాణా",
+  Hardware: "హార్డ్‌వేర్",
+  "Home essentials": "గృహ అవసరాలు",
+  Stationery: "స్టేషనరీ",
+  Services: "సేవలు",
+};
 export type ShopStatus = "open" | "closed" | "break" | "unconfirmed";
 export type Shop = {
   id: string;
@@ -42,11 +53,23 @@ export type Shop = {
   whatsapp?: string;
   mapsUrl?: string;
   images: string[];
+  published?: boolean;
 };
 export type ShopEdit = Partial<
   Pick<
     Shop,
-    "name" | "description" | "address" | "phone" | "whatsapp" | "tags" | "nameTe" | "descriptionTe"
+    | "name"
+    | "description"
+    | "address"
+    | "phone"
+    | "whatsapp"
+    | "tags"
+    | "nameTe"
+    | "descriptionTe"
+    | "category"
+    | "locality"
+    | "landmark"
+    | "hours"
   >
 > & { photo?: string };
 export type StatusRecord = { status: ShopStatus; until?: string; updatedAt: string };

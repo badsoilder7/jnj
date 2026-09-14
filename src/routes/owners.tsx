@@ -2,44 +2,104 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { Store, Check, Coffee, Moon, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { useDemo } from "@/components/mana/demo-provider";
+import { useDirectory } from "@/components/mana/directory-provider";
 import { StatusBadge } from "@/components/mana/shop-card";
 import { ShopPhoto } from "@/components/mana/shop-photo";
+import { DirectoryNotice } from "@/components/mana/directory-notice";
+import { AddShop, OwnerSignIn } from "@/components/mana/owner-access";
+import { getSupabase } from "@/lib/supabase";
+import { normalizeContact } from "@/lib/shop-validation";
+import { categories, categoryLabelsTe } from "@/lib/mana-data";
 import { copy } from "@/components/mana/i18n";
 import { Button } from "@/components/ui/button";
 import type { Shop, ShopEdit, ShopStatus } from "@/lib/mana-data";
 export const Route = createFileRoute("/owners")({
-  head: () => ({ meta: [{ title: "Owner preview · Mana Proddatur" }] }),
+  head: () => ({
+    meta: [
+      { title: "For shop owners · Mana Proddatur" },
+      { name: "robots", content: "noindex,nofollow" },
+    ],
+  }),
   component: Owners,
 });
 function Owners() {
-  const { shops, language } = useDemo();
-  const [id, setId] = useState(shops[0]!.id);
+  const { ownerShops: shops, language, isLive, user, authReady, loading, error } = useDirectory();
+  const [selectedId, setId] = useState("");
+  const id = shops.some((s) => s.id === selectedId) ? selectedId : shops[0]?.id;
   const t = copy[language];
-  const shop = shops.find((s) => s.id === id)!;
+  const te = language === "te";
+  const shop = shops.find((s) => s.id === id);
+  async function signOut() {
+    try {
+      const { error } = await getSupabase().auth.signOut({ scope: "local" });
+      if (error) throw error;
+    } catch {
+      toast.error(
+        te ? "సైన్ అవుట్ కాలేదు. మళ్లీ ప్రయత్నించండి." : "Could not sign out. Please try again.",
+      );
+    }
+  }
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <div className="mb-8">
         <span className="text-sm font-bold tracking-wide text-primary">MANA PRODDATUR</span>
-        <h1 className="mt-2 text-3xl font-extrabold">{t.ownerTitle}</h1>
-        <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">{t.ownerIntro}</p>
+        <h1 className="mt-2 text-3xl font-extrabold">
+          {isLive ? (te ? "దుకాణ యజమానులకు" : "For shop owners") : t.ownerTitle}
+        </h1>
+        <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
+          {isLive
+            ? te
+              ? "మీ దుకాణ వివరాలు, నేటి స్థితిని ఇక్కడ మార్చండి."
+              : "Keep your shop details and today's opening status up to date."
+            : t.ownerIntro}
+        </p>
       </div>
-      <label className="block max-w-lg text-sm font-bold">
-        {t.selectShop}
-        <select className="owner-input" value={id} onChange={(e) => setId(e.target.value)}>
-          {shops.map((s) => (
-            <option key={s.id} value={s.id}>
-              {language === "te" ? s.nameTe : s.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <OwnerEditor key={id} shop={shop} />
+      <DirectoryNotice />
+      {isLive && authReady && !user && <OwnerSignIn />}
+      {isLive && user && (
+        <div className="mb-6 flex flex-wrap items-center gap-4">
+          <span className="break-all text-sm text-muted-foreground">{user.email}</span>
+          <Button variant="ghost" onClick={signOut}>
+            {te ? "సైన్ అవుట్" : "Sign out"}
+          </Button>
+          <AddShop onCreated={setId} />
+        </div>
+      )}
+      {shop && (!isLive || user) && (
+        <>
+          <label className="block max-w-lg text-sm font-bold">
+            {isLive ? (te ? "మీ దుకాణం ఎంచుకోండి" : "Select your shop") : t.selectShop}
+            <select className="owner-input" value={id} onChange={(e) => setId(e.target.value)}>
+              {shops.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {language === "te" ? s.nameTe : s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {isLive && !shop.published && (
+            <p
+              role="status"
+              className="mt-5 rounded-xl bg-notice p-4 text-sm leading-6 text-notice-foreground"
+            >
+              {te
+                ? "సమీక్ష కోసం వేచి ఉంది. ఆమోదం తర్వాత మీ దుకాణం శోధనలో కనిపిస్తుంది. అప్పటివరకు వివరాలను మార్చవచ్చు."
+                : "Awaiting review. Your shop will appear in search after approval. You can complete its details now."}
+            </p>
+          )}
+          <OwnerEditor key={`${user?.id ?? "demo"}-${id}`} shop={shop} />
+        </>
+      )}
+      {isLive && user && !shop && !loading && !error && (
+        <p className="my-8 text-muted-foreground">
+          {te ? "మీ మొదటి దుకాణాన్ని జోడించండి." : "Add your first shop to get started."}
+        </p>
+      )}
     </main>
   );
 }
 function OwnerEditor({ shop }: { shop: Shop }) {
-  const { language, store, saveShop, setStatus } = useDemo();
+  const { language, store, saveShop, setStatus, isLive } = useDirectory();
   const t = copy[language];
   const te = language === "te";
   const [draft, setDraft] = useState<ShopEdit>({
@@ -51,37 +111,45 @@ function OwnerEditor({ shop }: { shop: Shop }) {
     phone: shop.phone ?? "",
     whatsapp: shop.whatsapp ?? "",
     tags: shop.tags,
+    category: shop.category,
+    locality: shop.locality,
+    landmark: shop.landmark,
+    hours: shop.hours,
   });
   const [tags, setTags] = useState(shop.tags.join(", "));
   const [photo, setPhoto] = useState<string>();
+  const [photoFile, setPhotoFile] = useState<File>();
   const [status, changeStatus] = useState<ShopStatus>("open");
   const [duration, setDuration] = useState("4");
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [statusSaving, setStatusSaving] = useState(false);
   const fail = () =>
     toast.error(
       te
-        ? "సేవ్ కాలేదు. బ్రౌజర్ నిల్వను తనిఖీ చేయండి."
-        : "Could not save. Check browser storage or use a smaller photo.",
+        ? "సేవ్ కాలేదు. వివరాలు, కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి."
+        : isLive
+          ? "Could not save. Check the details and your connection, then try again."
+          : "Could not save. Check browser storage or use a smaller photo.",
     );
-  function updateStatus() {
-    const now = Date.now();
-    const record = {
-      status,
-      updatedAt: new Date(now).toISOString(),
-      ...(status === "open" || status === "break"
-        ? { until: new Date(now + Number(duration) * 3600000).toISOString() }
-        : {}),
-    };
-    if (setStatus(shop.id, record)) toast.success(t.saved);
-    else fail();
+  async function updateStatus() {
+    setStatusSaving(true);
+    try {
+      await setStatus(shop.id, status, Number(duration));
+      toast.success(isLive ? (te ? "స్థితి సేవ్ అయింది." : "Opening status saved.") : t.saved);
+    } catch {
+      fail();
+    } finally {
+      setStatusSaving(false);
+    }
   }
-  function save(e: FormEvent) {
+  async function save(e: FormEvent) {
     e.preventDefault();
-    const phone = (draft.phone ?? "").replace(/[\s()-]/g, "");
-    const whatsapp = (draft.whatsapp ?? "").replace(/[\s()+-]/g, "");
+    const phone = normalizeContact(draft.phone ?? "");
+    const whatsapp = normalizeContact(draft.whatsapp ?? "", true);
     if (
-      (phone && !/^\+?[0-9]{10,15}$/.test(phone)) ||
-      (whatsapp && !/^[0-9]{10,15}$/.test(whatsapp))
+      (phone && !/^\+[1-9][0-9]{9,14}$/.test(phone)) ||
+      (whatsapp && !/^[1-9][0-9]{9,14}$/.test(whatsapp))
     ) {
       toast.error(
         te ? "దేశ కోడ్‌తో సరైన నంబర్ ఇవ్వండి." : "Enter valid phone numbers with country code.",
@@ -104,11 +172,22 @@ function OwnerEditor({ shop }: { shop: Shop }) {
       );
       return;
     }
-    if (
-      saveShop(shop.id, { ...draft, phone, whatsapp, tags: keywords, ...(photo ? { photo } : {}) })
-    )
-      toast.success(t.saved);
-    else fail();
+    setSaving(true);
+    try {
+      await saveShop(
+        shop.id,
+        { ...draft, phone, whatsapp, tags: keywords, ...(!isLive && photo ? { photo } : {}) },
+        photoFile,
+      );
+      setPhotoFile(undefined);
+      toast.success(
+        isLive ? (te ? "దుకాణ వివరాలు సేవ్ అయ్యాయి." : "Shop details saved.") : t.saved,
+      );
+    } catch {
+      fail();
+    } finally {
+      setSaving(false);
+    }
   }
   async function upload(file?: File) {
     if (!file) return;
@@ -126,6 +205,7 @@ function OwnerEditor({ shop }: { shop: Shop }) {
       const reader = new FileReader();
       reader.onload = () => {
         setPhoto(String(reader.result));
+        setPhotoFile(file);
         setUploading(false);
       };
       reader.onerror = () => {
@@ -187,12 +267,22 @@ function OwnerEditor({ shop }: { shop: Shop }) {
             ? "వ్యవధి ముగిశాక స్థితి నిర్ధారించలేదు అని చూపిస్తుంది."
             : "After this time, customers see ‘Status not confirmed’. Regular hours never turn this on automatically."}
         </p>
-        <Button className="mt-5 min-h-11 w-full" onClick={updateStatus}>
-          {t.saveStatus}
+        <Button className="mt-5 min-h-11 w-full" onClick={updateStatus} disabled={statusSaving}>
+          {statusSaving
+            ? te
+              ? "సేవ్ చేస్తున్నాము…"
+              : "Saving…"
+            : isLive
+              ? te
+                ? "స్థితి మార్చండి"
+                : "Update opening status"
+              : t.saveStatus}
         </Button>
       </section>
       <form onSubmit={save} className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-xl font-bold">{t.editListing}</h2>
+        <h2 className="text-xl font-bold">
+          {isLive ? (te ? "దుకాణ వివరాలు" : "Shop details") : t.editListing}
+        </h2>
         <div className="mt-5 grid gap-5">
           {(
             [
@@ -203,6 +293,9 @@ function OwnerEditor({ shop }: { shop: Shop }) {
               },
               { key: "nameTe", label: "దుకాణం పేరు (తెలుగు)", max: 100 },
               { key: "address", label: t.address, max: 300 },
+              { key: "locality", label: te ? "ప్రాంతం / వీధి" : "Locality / street", max: 100 },
+              { key: "landmark", label: te ? "గుర్తు" : "Landmark", max: 150 },
+              { key: "hours", label: t.regularHours, max: 150 },
               { key: "phone", label: t.phone, max: 20 },
               { key: "whatsapp", label: t.waNumber, max: 20 },
             ] as const
@@ -213,12 +306,31 @@ function OwnerEditor({ shop }: { shop: Shop }) {
                 className="owner-input"
                 value={draft[key] ?? ""}
                 maxLength={max}
-                required={key === "name" || key === "address"}
+                required={key === "name" || key === "address" || key === "locality"}
                 type={key === "phone" || key === "whatsapp" ? "tel" : "text"}
                 onChange={(e) => setDraft({ ...draft, [key]: e.target.value })}
               />
             </label>
           ))}
+          <p className="text-sm text-muted-foreground">
+            {te
+              ? "10 అంకెల స్థానిక నంబర్లకు +91 జోడిస్తాము. ఈ నంబర్లు అందరికీ కనిపిస్తాయి."
+              : "Local 10-digit numbers use +91. These contact numbers are public."}
+          </p>
+          <label className="text-sm font-bold">
+            {t.category}
+            <select
+              className="owner-input"
+              value={draft.category}
+              onChange={(e) => setDraft({ ...draft, category: e.target.value as Shop["category"] })}
+            >
+              {categories.slice(1).map((c) => (
+                <option key={c} value={c}>
+                  {te ? categoryLabelsTe[c] : c}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="text-sm font-bold">
             {t.description} (English)
             <textarea
@@ -265,10 +377,24 @@ function OwnerEditor({ shop }: { shop: Shop }) {
                 onChange={(e) => upload(e.target.files?.[0])}
               />
             </label>
-            <p className="mt-2 text-sm text-muted-foreground">{t.uploadHelp}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {isLive
+                ? te
+                  ? "JPG, PNG లేదా WebP, 3 MB వరకు. మీ దుకాణానికి చెందిన ఫోటోను జోడించండి. సేవ్ చేసిన ఫోటో అందరికీ అందుబాటులో ఉంటుంది."
+                  : "JPG, PNG or WebP, up to 3 MB. Upload a photo of your shop that you have permission to share. Saved photos are public."
+                : t.uploadHelp}
+            </p>
           </div>
-          <Button type="submit" disabled={uploading} className="min-h-12">
-            {t.saveLocal}
+          <Button type="submit" disabled={uploading || saving} className="min-h-12">
+            {saving
+              ? te
+                ? "సేవ్ చేస్తున్నాము…"
+                : "Saving…"
+              : isLive
+                ? te
+                  ? "వివరాలు సేవ్ చేయండి"
+                  : "Save shop details"
+                : t.saveLocal}
           </Button>
         </div>
       </form>

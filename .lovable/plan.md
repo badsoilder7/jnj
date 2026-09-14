@@ -1,3 +1,7 @@
+# Initial UI phase (archived)
+
+The user subsequently authorized direct GitHub edits and Supabase integration. The current scope and connection status are in README.md and roadmap.md. The initial UI plan below describes the original demo phase.
+
 # Mana Proddatur — UI-first local shop finder
 
 ## Build

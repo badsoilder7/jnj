@@ -18,6 +18,26 @@ try {
   assert.equal(shops.filter((s) => matchesShop(s, "unlisted specialty shoe")).length, 0);
   assert.equal(shops.filter((s) => matchesShop(s, "chargr")).length, 1);
   assert.equal(normalize("బియ్యం"), "బియ్యం");
+  const { normalizeContact, shopEditSchema } = await server.ssrLoadModule(
+    "/src/lib/shop-validation.ts",
+  );
+  assert.equal(normalizeContact("98765 43210"), "+919876543210");
+  assert.equal(normalizeContact("98765 43210", true), "919876543210");
+  assert.equal(normalizeContact("+44 20 7946 0958"), "+442079460958");
+  assert.equal(normalizeContact(""), "");
+  assert.equal(shopEditSchema.safeParse({ phone: normalizeContact("not a phone") }).success, false);
+  const { validatePublicConfig } = await server.ssrLoadModule("/src/lib/public-config.ts");
+  assert.equal(validatePublicConfig("", ""), "demo");
+  assert.equal(
+    validatePublicConfig("https://example.supabase.co", "sb_publishable_example"),
+    "live",
+  );
+  assert.throws(() => validatePublicConfig("https://example.supabase.co", "sb_secret_example"));
+  assert.throws(() => validatePublicConfig("https://example.supabase.co", ""));
+  assert.throws(() => validatePublicConfig("http://example.supabase.co", "sb_publishable_example"));
+  assert.throws(() =>
+    validatePublicConfig("https://user:pass@example.supabase.co", "sb_publishable_example"),
+  );
   const now = Date.now(),
     updatedAt = new Date(now - 60000).toISOString(),
     until = new Date(now + 60000).toISOString();

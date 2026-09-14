@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { z } from "zod";
 import { useMemo } from "react";
@@ -17,8 +17,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { categories, effectiveStatus, localities, matchesShop } from "@/lib/mana-data";
-import { useDemo } from "@/components/mana/demo-provider";
+import { categories, effectiveStatus, matchesShop } from "@/lib/mana-data";
+import { DirectoryNotice } from "@/components/mana/directory-notice";
+import { useDirectory } from "@/components/mana/directory-provider";
 import { copy } from "@/components/mana/i18n";
 import { ShopCard } from "@/components/mana/shop-card";
 const schema = z.object({
@@ -34,12 +35,13 @@ export const Route = createFileRoute("/")({
       { title: "Mana Proddatur — Find local shops" },
       {
         name: "description",
-        content: "Find sample local shops in Proddatur by shop name, category, or what they sell.",
+        content:
+          "Find shops in Proddatur 516360 by name or what they sell. View contact details and owner-confirmed opening status.",
       },
       { property: "og:title", content: "Mana Proddatur — Find local shops" },
       {
         property: "og:description",
-        content: "A bilingual local shop finder preview for Proddatur 516360.",
+        content: "A bilingual local shop finder for Proddatur 516360.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -72,7 +74,11 @@ const icons = [
 function Browse() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const { language, shops, store, now } = useDemo();
+  const { language, shops, store, now, isLive, loading, error } = useDirectory();
+  const localities = [
+    "All localities",
+    ...Array.from(new Set(shops.map((s) => s.locality))).sort(),
+  ];
   const t = copy[language];
   const filtered = useMemo(
     () =>
@@ -143,12 +149,21 @@ function Browse() {
         </div>
       </section>
       <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex items-start gap-3 rounded-xl border border-notice-border bg-notice px-4 py-3">
-          <span className="mt-0.5 rounded-md bg-warning px-2 py-1 text-xs font-extrabold text-warning-foreground">
-            {t.sample}
-          </span>
-          <p className="text-sm leading-6 text-notice-foreground">{t.sampleNote}</p>
-        </div>
+        {!isLive ? (
+          <div className="flex items-start gap-3 rounded-xl border border-notice-border bg-notice px-4 py-3">
+            <span className="mt-0.5 rounded-md bg-warning px-2 py-1 text-xs font-extrabold text-warning-foreground">
+              {t.sample}
+            </span>
+            <p className="text-sm leading-6 text-notice-foreground">{t.sampleNote}</p>
+          </div>
+        ) : (
+          <p className="text-sm leading-6 text-muted-foreground">
+            {language === "te"
+              ? "స్థితిని యజమానులు స్వయంగా మారుస్తారు. ప్రతి 30 సెకన్లకు నవీకరిస్తాము. వెళ్లే ముందు అవసరమైన వస్తువు ఉందో సంప్రదించండి."
+              : "Opening status is set by shop owners and refreshed every 30 seconds. Contact the shop to check availability before visiting."}
+          </p>
+        )}
+        <DirectoryNotice />
         <div className="mt-5 grid gap-3 rounded-xl border border-border bg-background p-3 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
           <label className="text-sm font-bold text-foreground">
             {t.category}
@@ -211,7 +226,7 @@ function Browse() {
             </h2>
           </div>
         </div>
-        {filtered.length ? (
+        {loading || error ? null : filtered.length ? (
           <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((shop) => (
               <ShopCard
@@ -228,11 +243,29 @@ function Browse() {
               <span className="mx-auto grid size-14 place-items-center rounded-full bg-background text-primary shadow-sm">
                 <Search />
               </span>
-              <h2 className="mt-4 text-xl font-extrabold">{t.noResults}</h2>
-              <p className="mx-auto mt-2 max-w-md text-muted-foreground">{t.noHelp}</p>
-              <Button onClick={clear} className="mt-5 min-h-11">
-                {t.clear}
-              </Button>
+              <h2 className="mt-4 text-xl font-extrabold">
+                {isLive && !shops.length
+                  ? language === "te"
+                    ? "మన దుకాణాల డైరెక్టరీ మొదలవుతోంది"
+                    : "Our local directory is taking shape"
+                  : t.noResults}
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-muted-foreground">
+                {isLive && !shops.length
+                  ? language === "te"
+                    ? "మొదటి దుకాణాలను జోడిస్తున్నాము. మీ దుకాణాన్ని నమోదు చేయండి."
+                    : "The first shops are being added. Own a shop in Proddatur? Add yours for review."
+                  : t.noHelp}
+              </p>
+              {isLive && !shops.length ? (
+                <Button asChild className="mt-5 min-h-11">
+                  <Link to="/owners">{t.owners}</Link>
+                </Button>
+              ) : (
+                <Button onClick={clear} className="mt-5 min-h-11">
+                  {t.clear}
+                </Button>
+              )}
             </div>
           </div>
         )}

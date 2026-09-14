@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Camera } from "lucide-react";
-import { useDemo } from "./demo-provider";
+import { useDirectory } from "./directory-provider";
 export function ShopPhoto({ src, alt }: { src?: string | undefined; alt: string }) {
   const [failed, setFailed] = useState<string | null>(null);
-  const { language } = useDemo();
+  const { language } = useDirectory();
   return src && failed !== src ? (
     <img
       src={src}
