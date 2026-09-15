@@ -30,4 +30,12 @@ After deployment, configure the resulting HTTPS origin and `/owners` redirect in
 
 A permanent Cloudflare account connection has not been established in this session. The installed Wrangler CLI is not authenticated, and no Cloudflare connector is available. The production bundle and deployment dry-run pass. Do not commit account tokens or temporary account claim links to this repository.
 
+## Temporary preview — 2026-09-15
+
+The connected app was deployed successfully with Wrangler's supported `--temporary` option. Preview origin: `https://mana-proddatur.shore-spinosaurus-6a2.workers.dev`. Worker version: `4b625ed3-40cf-4c04-9da3-1ec174208e13`; startup time reported by Cloudflare: 5 ms.
+
+This temporary account must be claimed through the private link returned by Wrangler within 60 minutes of creation. An unclaimed preview expires; this URL is not a permanent production deployment. The claim link is intentionally excluded from the repository. GitHub automatic deployments still require the Workers Builds connection described above.
+
+Browser checks passed for the live directory's empty state, search URL updates, category filters, filter reset, English/Telugu switching, and navigation to the owner email sign-in form. No sign-in email was sent. Configure and verify public email authentication before onboarding owners.
+
 References: [Cloudflare TanStack Start](https://developers.cloudflare.com/workers/framework-guides/web-apps/tanstack-start/), [Workers Builds configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/).

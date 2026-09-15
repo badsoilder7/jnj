@@ -42,6 +42,8 @@ On 2026-09-15, the free Supabase project was created in the authorized organizat
 
 Public owner onboarding still needs custom SMTP, the deployed site's Auth redirect settings, and browser verification of sign-in and photo uploads. A permanent Cloudflare account connection is still required. No real shops have been added.
 
+A temporary Cloudflare preview was deployed and its public search/filter/language interactions checked on 2026-09-15. See [CLOUDFLARE_SETUP.md](CLOUDFLARE_SETUP.md) for the preview's expiry and the permanent GitHub deployment setup.
+
 ## Photos and export
 
 The original Lovable text export could not transfer its binary JPEGs intact. Missing photos have an accessible placeholder. Restoring the original six `src/assets/demo-*.jpg` files automatically restores illustrative demo images. Live shop owners upload their own business photos; the demo images never stand in for a real shop.
