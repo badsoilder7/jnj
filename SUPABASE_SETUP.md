@@ -2,29 +2,38 @@
 
 ## 1. Project
 
-Choose the intended Supabase organization and confirm the project's quoted cost before creating it. Suggested project name: `mana-proddatur`; region: Mumbai (`ap-south-1`). The account connection alone does not create a database project.
+Connected on 2026-09-15 with user approval:
+
+- Project: `mana-proddatur` (`qtnesaercsghwfhlnxlb`).
+- Organization: `badsoilder7's Org` (`vhhdvyxacydkmzivjbpf`).
+- Region: Mumbai (`ap-south-1`); quoted free plan cost: $0/month.
+- [Dashboard](https://supabase.com/dashboard/project/qtnesaercsghwfhlnxlb).
+
+The project was healthy when verified. Do not create a second project for this repository.
 
 ## 2. Schema
 
-Apply `supabase/migrations/20260914135102_local_shop_directory.sql` once through Supabase migrations. It creates only `public.shops`, status functions/triggers, a `shop-photos` bucket, and ownership policies. Do not import the fictional demo shops into production.
+`supabase/migrations/20260915062310_local_shop_directory.sql` is **already applied**. It creates `public.shops`, status functions/triggers, a `shop-photos` bucket, and ownership policies. Do not import the fictional demo shops into production.
 
-The migration was created with Supabase CLI 2.117.0. With a linked local project, the migration can be deployed using that version:
+The migration was prepared with Supabase CLI 2.117.0 and applied through the connected migration tool. Its file version matches the hosted migration history, `20260915062310`. Do not apply it again through the SQL editor. To deploy future migrations with a linked local project:
 
 ```sh
 npm exec --yes --package=supabase@2.117.0 -- supabase db push
 ```
 
-Alternatively apply the migration with the connected Supabase migration tool so the migration is recorded in its history. After applying it, confirm the public schema is exposed to the Data API, check the security advisors, and regenerate TypeScript database types from the hosted schema if a generated client is introduced. The current repository validates explicit response fields using Zod rather than asserting generated types from an unavailable database.
+Future migrations can also use the connected Supabase migration tool. The public Data API and security advisor checks passed for the initial schema. The current client validates explicit response fields using Zod; regenerate types from the hosted schema if a generated client is introduced.
 
 ## 3. Public app configuration
 
-Use the project's HTTPS URL and **publishable** key in the two variables from `.env.example`. Set them in Cloudflare's build variables before building. They are browser configuration; service-role keys, project passwords, and Supabase access tokens must never be VITE variables or committed files.
+The default HTTPS URL and **publishable** key are connected in `src/lib/supabase-public.ts`, so this project needs no additional build variables. Publishable keys are [designed for public browser code](https://supabase.com/docs/guides/getting-started/api-keys); RLS and column grants enforce access. Service-role keys, project passwords, and Supabase access tokens must never be VITE variables or committed files.
+
+To point a deployment at another project, set both override variables from `.env.example` before building. `VITE_DIRECTORY_MODE=demo` explicitly selects the fictional local preview; the default is `live`.
 
 The owner workspace is a browser client. Authentication and authorization happen through Supabase Auth and Postgres RLS; SSR does not hold an owner session or a privileged database key.
 
 ## 4. Email sign-in
 
-Enable email authentication with confirmation. The app uses the standard email magic-link flow. Set the site's real HTTPS origin as the Auth Site URL and allow the exact redirect URL `<site-origin>/owners`. Add local/preview URLs only when needed. Keep the standard confirmation link in the email template.
+Email authentication is enabled. The app uses the standard email magic-link flow. **Deployment setup remains:** set the site's real HTTPS origin as the Auth Site URL and allow the exact redirect URL `<site-origin>/owners`. Add local/preview URLs only when needed. Keep the standard confirmation link in the email template.
 
 Configure custom SMTP before public onboarding. Supabase's default sender is restricted to project-team addresses and is intended for setup/testing. See [Supabase SMTP documentation](https://supabase.com/docs/guides/auth/auth-smtp) and [passwordless sign-in](https://supabase.com/docs/guides/auth/auth-email-passwordless).
 
@@ -38,7 +47,9 @@ Shop photos are public business assets, including photos uploaded while a listin
 
 ## 6. Verify the hosted connection
 
-Before accepting real shop owners, use two test accounts to verify draft visibility, approval, cross-owner editing denial, upload ownership, and sign-out. Confirm anonymous requests can read only published shop fields and cannot write. Check a status change from a separate browser, the displayed India timestamp, expiry, and network-error behavior. Test email delivery and photo MIME/size enforcement through the actual hosted APIs.
+Hosted checks already passed for private drafts, owner-only edits, administrator-only publication, protected columns, server-stamped status expiry, public reads, and anonymous denial. The reproducible SQL is in `tests/hosted-database.sql`; it uses temporary fixtures inside a transaction and rolls them back. HTTP checks confirmed a successful empty public shop list, enabled email Auth, and rejection of anonymous status changes. The security advisor reported no issues, and the database contains zero shops.
+
+Before accepting real shop owners, verify email delivery, session redirects, sign-out, and photo MIME/size/ownership enforcement through the actual browser and Storage APIs. Check status changes from a separate browser, the displayed India timestamp, expiry, and network-error behavior. These browser flows have not yet been verified on a deployed site.
 
 Public search currently loads published listings in pages of 250 and matches them in the browser. This avoids Supabase's single-response row limit and is suitable for an initial town directory; move search to a paginated server query when the directory grows substantially.
 

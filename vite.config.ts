@@ -5,7 +5,7 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { validatePublicConfig } from "./src/lib/public-config";
+import { resolveDirectoryConfig } from "./src/lib/public-config";
 
 export default defineConfig({
   vite: {
@@ -13,9 +13,10 @@ export default defineConfig({
       {
         name: "mana-public-config",
         configResolved(config) {
-          validatePublicConfig(
+          resolveDirectoryConfig(
             config.env["VITE_SUPABASE_URL"],
             config.env["VITE_SUPABASE_PUBLISHABLE_KEY"],
+            config.env["VITE_DIRECTORY_MODE"],
           );
         },
       },

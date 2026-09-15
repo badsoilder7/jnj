@@ -18,9 +18,11 @@ npm run build
 
 ## Directory modes
 
-With both Supabase environment variables empty, the site is an explicitly labelled **local demo** with ten fictional sample shops. Edits stay in that browser. Demo data is never seeded into a live database.
+The app defaults to the **live directory**, connected to the `mana-proddatur` Supabase project in Mumbai. Its public browser configuration is in `src/lib/supabase-public.ts`. The database migration is applied, and there are no published shops yet. Live mode shows loading, failure, and empty states without falling back to fictional shops.
 
-Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` at build time to enable the **live directory**. Copy `.env.example` for local configuration. Only `sb_publishable_` keys are accepted; a build configuration check rejects secret keys or incomplete connections. The database migration must be applied first. Live mode shows loading, failure, and empty states; it does not fall back to fictional shops.
+For a local design preview, set `VITE_DIRECTORY_MODE=demo` before starting/building. This explicitly labelled demo has ten fictional sample shops; edits stay in that browser. Demo data is never seeded into the live database.
+
+To use another Supabase project, set **both** `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` at build time. Copy `.env.example` for local configuration. Only `sb_publishable_` keys are accepted; the build rejects secret keys and incomplete overrides, including in demo mode.
 
 ## Implemented
 
@@ -36,7 +38,9 @@ Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` at build time to ena
 
 See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for the migration, authentication settings, administrator review, and live validation. See [CLOUDFLARE_SETUP.md](CLOUDFLARE_SETUP.md) for the generated Worker and GitHub build settings.
 
-No Supabase project was present when this integration was prepared. No migration has been applied to a hosted database, no real shops have been added, and no Cloudflare deployment has been made. Production sign-in and storage HTTP flows still need to be verified after connecting the services.
+On 2026-09-15, the free Supabase project was created in the authorized organization and its migration applied. Hosted owner/public permission checks and anonymous API checks passed; Supabase's security advisor reported no issues. See the [project dashboard](https://supabase.com/dashboard/project/qtnesaercsghwfhlnxlb).
+
+Public owner onboarding still needs custom SMTP, the deployed site's Auth redirect settings, and browser verification of sign-in and photo uploads. A permanent Cloudflare account connection is still required. No real shops have been added.
 
 ## Photos and export
 
@@ -44,4 +48,4 @@ The original Lovable text export could not transfer its binary JPEGs intact. Mis
 
 ## Validation
 
-See [VALIDATION.md](VALIDATION.md). Tests exercise search, contact normalization, status expiry, environment checks, and actual Postgres row/column authorization using PGlite. The database harness supplies minimal Supabase Auth/Storage fixtures; it does not replace validation against the hosted services.
+See [VALIDATION.md](VALIDATION.md). Tests exercise search, contact normalization, status expiry, environment checks, and Postgres row/column authorization using PGlite. `tests/hosted-database.sql` also passed against the connected Supabase database; its temporary records are rolled back. Email delivery and Storage HTTP flows require separate integration checks.

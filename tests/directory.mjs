@@ -26,8 +26,18 @@ try {
   assert.equal(normalizeContact("+44 20 7946 0958"), "+442079460958");
   assert.equal(normalizeContact(""), "");
   assert.equal(shopEditSchema.safeParse({ phone: normalizeContact("not a phone") }).success, false);
-  const { validatePublicConfig } = await server.ssrLoadModule("/src/lib/public-config.ts");
+  const { validatePublicConfig, resolveDirectoryConfig } = await server.ssrLoadModule(
+    "/src/lib/public-config.ts",
+  );
   assert.equal(validatePublicConfig("", ""), "demo");
+  assert.equal(resolveDirectoryConfig().isLive, true);
+  assert.equal(resolveDirectoryConfig().url, "https://qtnesaercsghwfhlnxlb.supabase.co");
+  assert.equal(resolveDirectoryConfig(undefined, undefined, "demo").isLive, false);
+  assert.throws(() => resolveDirectoryConfig("https://example.supabase.co", ""));
+  assert.throws(() => resolveDirectoryConfig(undefined, undefined, "invalid"));
+  assert.throws(() =>
+    resolveDirectoryConfig("https://example.supabase.co", "sb_secret_example", "demo"),
+  );
   assert.equal(
     validatePublicConfig("https://example.supabase.co", "sb_publishable_example"),
     "live",

@@ -29,7 +29,7 @@ await db.exec(`
 await db.query("insert into auth.users values ($1), ($2)", [owner, stranger]);
 await db.exec(
   await readFile(
-    new URL("../supabase/migrations/20260914135102_local_shop_directory.sql", import.meta.url),
+    new URL("../supabase/migrations/20260915062310_local_shop_directory.sql", import.meta.url),
     "utf8",
   ),
 );

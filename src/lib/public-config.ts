@@ -1,3 +1,5 @@
+import { connectedSupabase } from "./supabase-public";
+
 export function validatePublicConfig(url: string | undefined, key: string | undefined) {
   const endpoint = url?.trim() ?? "";
   const publicKey = key?.trim() ?? "";
@@ -20,4 +22,20 @@ export function validatePublicConfig(url: string | undefined, key: string | unde
     );
   }
   return "live" as const;
+}
+
+export function resolveDirectoryConfig(url?: string, key?: string, mode?: string) {
+  const selectedMode = mode?.trim() || "live";
+  if (!["live", "demo"].includes(selectedMode)) {
+    throw new Error("VITE_DIRECTORY_MODE must be live or demo.");
+  }
+  const override = Boolean(url?.trim() || key?.trim());
+  const selected = override
+    ? { url: url?.trim() ?? "", key: key?.trim() ?? "" }
+    : { url: connectedSupabase.url, key: connectedSupabase.publishableKey };
+  // Validate even in demo mode so an invalid secret override cannot enter a build.
+  validatePublicConfig(selected.url, selected.key);
+  return selectedMode === "demo"
+    ? { url: "", key: "", isLive: false }
+    : { ...selected, isLive: true };
 }
