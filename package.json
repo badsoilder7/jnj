@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node tests/directory.mjs && node tests/database.mjs",
     "deploy": "wrangler deploy --name mana-proddatur --config .output/server/wrangler.json",
-    "deploy:check": "wrangler deploy --dry-run --name mana-proddatur --config .output/server/wrangler.json"
+    "deploy:check": "wrangler deploy --dry-run --name mana-proddatur --config .output/server/wrangler.json",
+    "deploy:app": "wrangler deploy --name app --config .output/server/wrangler.json",
+    "deploy:app:check": "wrangler deploy --dry-run --name app --config .output/server/wrangler.json"
   },
   "overrides": {
     "rolldown": "1.2.1"

@@ -6,9 +6,21 @@ This TanStack Start app uses Lovable's Vite configuration and Nitro's `cloudflar
 
 The requested account subdomain is `manaproddutur.workers.dev`. Cloudflare's public Worker routes include a Worker name before that account subdomain: `<worker>.<account-subdomain>.workers.dev`. The account subdomain alone is not the route for this app.
 
-If `manaproddutur` is available, changing the account subdomain would give the existing Worker `mana-proddatur.manaproddutur.workers.dev`. A shorter option, `app.manaproddutur.workers.dev`, would also require renaming the Worker to `app` and updating the deploy scripts to match. These are proposed addresses; neither availability nor a rename has been confirmed.
+The selected shorter format is `app.manaproddutur.workers.dev`, subject to account-subdomain availability. It requires Worker name `app` and account subdomain `manaproddutur`. The repository now includes `npm run deploy:app` and its dry-run, `npm run deploy:app:check`, with the matching Worker name. Neither address availability nor the account/Worker rename has been confirmed.
 
 Cloudflare documents the account setting under **Workers & Pages > Your subdomain > Change**. This setting changes the shared account subdomain for its Workers, so use the account containing this project. After choosing the final address, update Supabase's Site URL and the exact `/owners` redirect. See [Cloudflare's workers.dev documentation](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/).
+
+After renaming the existing Worker to `app`, use these settings for its GitHub build connection:
+
+| Setting | Value |
+| --- | --- |
+| Worker name | `app` |
+| Account subdomain | `manaproddutur` (if available) |
+| Repository / branch | `badsoilder7/jnj` / `main` |
+| Build command | `npm ci && npm run typecheck && npm test && npm run build` |
+| Deploy command | `npm run deploy:app` |
+
+The original `npm run deploy` still targets `mana-proddatur` for the current deployment. Select the script matching the Worker being deployed.
 
 ## GitHub integration
 
@@ -37,6 +49,10 @@ After connecting the correct Cloudflare account, `npm run deploy` publishes the 
 After deployment, configure the resulting HTTPS origin and `/owners` redirect in Supabase Auth, then run the hosted checks in [SUPABASE_SETUP.md](SUPABASE_SETUP.md). Add a custom domain through Cloudflare when the default Worker URL is verified.
 
 The user reported successfully claiming the Cloudflare account on 2026-09-15. Claiming the account does not authenticate this coding environment: Wrangler still reports no authenticated user, and no Cloudflare connector is available. Connecting Workers Builds remains an account-dashboard step. The production bundle and deployment dry-run passed. Do not commit account tokens or temporary account claim links to this repository.
+
+The user subsequently reported completing the device sign-in screen, but this environment blocked the authorization follow-up to `https://dash.cloudflare.com:443` by network policy. A subsequent `wrangler whoami` still reported no authenticated user. The rename must be completed through an authorized account connection or the user's dashboard; repeatedly issuing device codes does not resolve this environment block.
+
+`npm run deploy:app:check` passed with the existing production bundle, confirming that the renamed deployment can be packaged. This dry-run did not change the hosted Worker or account subdomain. The account was originally named **Shore Spinosaurus**; if renamed after claiming, identify it by the existing `mana-proddatur` Worker.
 
 ## Temporary preview — 2026-09-15
 

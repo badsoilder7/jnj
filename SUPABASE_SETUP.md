@@ -48,6 +48,8 @@ Open [Authentication > URL Configuration](https://supabase.com/dashboard/project
 
 If the claimed Worker's address is different, use that exact origin in both values. The app already requests a return to its current origin plus `/owners`. Use exact production paths rather than a wildcard for all `workers.dev` sites. These dashboard settings have not been applied through this session; the connected Supabase tools do not expose Auth configuration changes.
 
+For the requested rename, once Cloudflare actually confirms `app.manaproddutur.workers.dev`, use Site URL `https://app.manaproddutur.workers.dev` and redirect `https://app.manaproddutur.workers.dev/owners`. These values are prepared only; the hostname is not yet claimed or deployed by this session.
+
 ### Resend connection
 
 The Resend connection was authenticated and checked on 2026-09-15. It currently contains **no sending domains**. A domain owned by the user must be supplied and verified before production email delivery can be configured. The Worker subdomain is the website's address; it is not a verified Resend sending domain.
