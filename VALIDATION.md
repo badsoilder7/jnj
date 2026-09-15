@@ -31,5 +31,6 @@ Cloudflare and browser checks:
 Remaining verification:
 
 - Public email delivery needs custom SMTP and the final site's Auth redirect configuration. Session redirects and Storage HTTP enforcement still need browser integration testing.
-- A permanent Cloudflare account connection is not established. Mobile viewport checks and authenticated owner workflows remain pending.
+- The user reported claiming the Cloudflare account. This coding environment is still unauthenticated with Cloudflare, and the GitHub build connection is unverified. A later HTTP check returned 403 / Cloudflare error 1010, so post-claim availability could not be re-verified here. Mobile viewport checks and authenticated owner workflows remain pending.
+- Resend authentication succeeded, but its domain list is empty. Public owner email delivery requires a verified sending domain and SMTP configuration; no email was sent during verification.
 - No real shops have been published. The original Lovable JPEG/ICO binary files could not be recovered by its text export, so the demo uses photo placeholders until those files are restored. Live owners can upload their shop photos after completing email setup.

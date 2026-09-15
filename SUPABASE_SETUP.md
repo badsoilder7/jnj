@@ -37,6 +37,34 @@ Email authentication is enabled. The app uses the standard email magic-link flow
 
 Configure custom SMTP before public onboarding. Supabase's default sender is restricted to project-team addresses and is intended for setup/testing. See [Supabase SMTP documentation](https://supabase.com/docs/guides/auth/auth-smtp) and [passwordless sign-in](https://supabase.com/docs/guides/auth/auth-email-passwordless).
 
+### Exact URL settings
+
+Open [Authentication > URL Configuration](https://supabase.com/dashboard/project/qtnesaercsghwfhlnxlb/auth/url-configuration). If Cloudflare still displays the original Worker address, set:
+
+| Setting | Value |
+| --- | --- |
+| Site URL | `https://mana-proddatur.shore-spinosaurus-6a2.workers.dev` |
+| Redirect URLs | `https://mana-proddatur.shore-spinosaurus-6a2.workers.dev/owners` |
+
+If the claimed Worker's address is different, use that exact origin in both values. The app already requests a return to its current origin plus `/owners`. Use exact production paths rather than a wildcard for all `workers.dev` sites. These dashboard settings have not been applied through this session; the connected Supabase tools do not expose Auth configuration changes.
+
+### Resend connection
+
+The Resend connection was authenticated and checked on 2026-09-15. It currently contains **no sending domains**. A domain owned by the user must be supplied and verified before production email delivery can be configured. The Worker subdomain is the website's address; it is not a verified Resend sending domain.
+
+After verifying the chosen domain, use [Supabase SMTP settings](https://supabase.com/dashboard/project/qtnesaercsghwfhlnxlb/auth/smtp):
+
+| Setting | Value |
+| --- | --- |
+| Sender name | `Mana Proddatur` |
+| Sender email | An address on the verified sending domain |
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| Username | `resend` |
+| Password | A Resend API key for sending from that domain |
+
+Enter the sending key directly in Supabase's private SMTP configuration. It does not belong in the frontend, Cloudflare build variables, or GitHub. No sending key was created and no email was sent during this check. See [Resend's Supabase SMTP guide](https://resend.com/docs/send-with-supabase-smtp).
+
 ## 5. Review a submitted shop
 
 Use the Supabase dashboard with an administrator account. Review its public contact details, address in 516360, photo, keyword tags, and the submitter's authority to manage it. Then set `published` to `true` for that specific `shops` row. Setting it to `false` removes the listing from public search on the next refresh.

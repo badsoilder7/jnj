@@ -40,9 +40,9 @@ See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for the migration, authentication set
 
 On 2026-09-15, the free Supabase project was created in the authorized organization and its migration applied. Hosted owner/public permission checks and anonymous API checks passed; Supabase's security advisor reported no issues. See the [project dashboard](https://supabase.com/dashboard/project/qtnesaercsghwfhlnxlb).
 
-Public owner onboarding still needs custom SMTP, the deployed site's Auth redirect settings, and browser verification of sign-in and photo uploads. A permanent Cloudflare account connection is still required. No real shops have been added.
+Public owner onboarding still needs custom SMTP, the deployed site's Auth redirect settings, and browser verification of sign-in and photo uploads. Resend is connected but currently has no sending domain. No real shops have been added.
 
-A temporary Cloudflare preview was deployed and its public search/filter/language interactions checked on 2026-09-15. See [CLOUDFLARE_SETUP.md](CLOUDFLARE_SETUP.md) for the preview's expiry and the permanent GitHub deployment setup.
+A temporary Cloudflare preview was deployed and its public search/filter/language interactions checked on 2026-09-15. The user subsequently reported claiming it. The coding environment still lacks Cloudflare account authentication, and the GitHub deployment connection remains to be configured. See [CLOUDFLARE_SETUP.md](CLOUDFLARE_SETUP.md) for the exact settings and the latest verification limits.
 
 ## Photos and export
 
